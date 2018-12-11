@@ -279,6 +279,167 @@ host, port, user, password, dbname)
     
 }
 
+func exersizeengTwenty() {
+psqlInfo := fmt.Sprintf("host=%s port=%d user=%s " + "password=%s dbname=%s sslmode=disable",
+host, port, user, password, dbname)
+  db, err := sql.Open("postgres", psqlInfo)
+  if err != nil {
+    panic(err)
+  }
+  defer db.Close()
+  words := make(map[string]string)
+  var key string
+  var value string
+  var number int
+  rows, err := db.Query("SELECT * FROM words WHERE number < 30")
+    if err != nil {
+        panic(err)
+    }
+    id := 0
+    for rows.Next() {
+        err := rows.Scan(&id, &key, &value, &number)
+        if err != nil {
+            panic(err)
+        }
+        words[key]=value
+    }
+    if err = rows.Err(); err != nil {
+        panic(err)
+    }
+    count := 0
+    win := 0
+	var startTime = time.Now()
+	num := 0
+	iter := 0
+    for eng, rus := range words {
+    	count++
+        fmt.Printf("%s ", eng)
+        fmt.Scanf("%s\n", &key)
+        if key == rus {
+        	
+        	win++
+			sqlStatement := `
+        SELECT number FROM words WHERE engversion = $1 `
+        row := db.QueryRow(sqlStatement, eng)
+        err := row.Scan(&num)
+        if err != nil {
+            panic(err)
+        }		
+        num++
+	    sqlStatement = `
+        UPDATE words SET number = $1 WHERE engversion = $2 `
+	    _, err = db.Exec(sqlStatement, num, eng)
+        if err != nil {
+        panic(err)
+        }
+        continue
+        }
+		sqlStatement := `
+        SELECT number FROM words WHERE engversion = $1 `
+        row := db.QueryRow(sqlStatement, eng)
+        err := row.Scan(&num)
+        if err != nil {
+            panic(err)
+        }		
+        num--
+	    sqlStatement = `
+        UPDATE words SET number = $1 WHERE engversion = $2 `
+	    _, err = db.Exec(sqlStatement, num, eng)
+        if err != nil {
+        panic(err)
+        }
+	fmt.Printf("Incorrect, correct version %s.\n", rus)
+	iter++
+	if iter == 20 {
+		return
+	}
+	}
+	var duration = time.Since(startTime)
+    fmt.Printf("%v correct answers from %v, elapsed time %v.\n", win, count, duration)
+    
+}
+
+
+func exersizerusTwenty() {
+psqlInfo := fmt.Sprintf("host=%s port=%d user=%s " + "password=%s dbname=%s sslmode=disable",
+host, port, user, password, dbname)
+  db, err := sql.Open("postgres", psqlInfo)
+  if err != nil {
+    panic(err)
+  }
+  defer db.Close()
+  words := make(map[string]string)
+  var key string
+  var value string
+  var number int
+  rows, err := db.Query("SELECT * FROM words WHERE number < 30")
+    if err != nil {
+        panic(err)
+    }
+    id := 0
+    for rows.Next() {
+        err := rows.Scan(&id, &key, &value, &number)
+        if err != nil {
+            panic(err)
+        }
+        words[key]=value
+    }
+    if err = rows.Err(); err != nil {
+        panic(err)
+    }
+    count := 0
+    win := 0
+	num := 0
+	iter := 0
+	var startTime = time.Now()
+    for eng, rus := range words {
+    	count++
+        fmt.Printf("%s ", rus)
+        fmt.Scanf("%s\n", &key)
+        if key == eng {
+        	win++
+			sqlStatement := `
+        SELECT number FROM words WHERE rusversion = $1 `
+        row := db.QueryRow(sqlStatement, rus)
+        err := row.Scan(&num)
+        if err != nil {
+            panic(err)
+        }		
+        num++
+	    sqlStatement = `
+        UPDATE words SET number = $1 WHERE rusversion = $2 `
+	    _, err = db.Exec(sqlStatement, num, rus)
+        if err != nil {
+        panic(err)
+        }
+        continue
+        }
+		sqlStatement := `
+        SELECT number FROM words WHERE rusversion = $1 `
+        row := db.QueryRow(sqlStatement, rus)
+        err := row.Scan(&num)
+        if err != nil {
+            panic(err)
+        }		
+        num--
+	    sqlStatement = `
+        UPDATE words SET number = $1 WHERE rusversion = $2 `
+	    _, err = db.Exec(sqlStatement, num, rus)
+        if err != nil {
+        panic(err)
+        }
+        fmt.Printf("Incorrect, correct version %s.\n", eng)
+		iter++
+		if iter == 20 {
+			return
+		}
+    }
+	var duration = time.Since(startTime)
+	
+    fmt.Printf("%v correct answers from %v, elapsed time %v.\n", win, count, duration)
+    
+}
+
 func deleteLearnedWords () {
 psqlInfo := fmt.Sprintf("host=%s port=%d user=%s " + "password=%s dbname=%s sslmode=disable",
 host, port, user, password, dbname)
@@ -287,7 +448,7 @@ host, port, user, password, dbname)
     panic(err)
   }
   defer db.Close()
-_, err = db.Query("DELETE FROM words WHERE number > 3")
+_, err = db.Query("DELETE FROM words WHERE number > 10")
     if err != nil {
         panic(err)
     }
@@ -296,7 +457,7 @@ _, err = db.Query("DELETE FROM words WHERE number > 3")
 
 func menu() {
 for {
-	fmt.Println("\nWelcome to programm \"English with Vladosik\".\n To add a new word, press 1.\n To find a word in the database, press 2.\n To display the entire dictionary, press 3.\n To begin the exercise of translating from English to Russian, press 4.\n To begin the exercise of translating from Russian to English, press 5.\n To delete a word, press 6.\n To delete all learned words, press 7.\n To exit the program, press 8.")
+	fmt.Println("\nWelcome to programm \"English with Vladosik\".\n To add a new word, press 1.\n To find a word in the database, press 2.\n To display the entire dictionary, press 3.\n To begin the exercise of translating from English to Russian, press 4.\n To begin the exercise of translating from Russian to English, press 5.\n To delete a word, press 6.\n To begin the exercise of translating from English to Russian(20 words), press 7.\n To begin the exercise of translating from Russian to English(20 words), press 8.\n To delete all learned words, press 9.\n To exit the program, press 10.")
 answer := ""
 fmt.Scanf("%s\n", &answer)
 switch answer {
@@ -313,8 +474,12 @@ case "5":
 case "6":
     delWord()
 case "7":
-    deleteLearnedWords()
+    exersizeengTwenty()
 case "8":
+    exersizerusTwenty()
+case "9":
+    deleteLearnedWords()
+case "10":
     return
 default:
     fmt.Println("Enter the correct number.\n")	
