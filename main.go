@@ -448,7 +448,7 @@ host, port, user, password, dbname)
     panic(err)
   }
   defer db.Close()
-_, err = db.Query("DELETE FROM words WHERE number > 10")
+_, err = db.Query("DELETE FROM words WHERE number > 20")
     if err != nil {
         panic(err)
     }
